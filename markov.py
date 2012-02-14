@@ -59,15 +59,14 @@ def generate(words, endings, sentences=10, sentence_size=25, seed=None):
 	w1, w2 = None, None
 	iterations = 0
 
-	if seed is not None and seed in words:
-		w1 = choice(endings[seed])
-		w2 = choice(endings[w1])
-
 	while sentences > 0:
 		end_sentence = False
 
 		if w1 is None:
-			w1 = choice(words)
+			if seed is not None and seed in words:
+				w1 = choice(endings[seed])
+			else:
+				w1 = choice(words)
 			w2 = choice(endings[w1])
 
 		sentence.append(w1)
