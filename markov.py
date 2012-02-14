@@ -16,6 +16,8 @@ def argparser():
 						help="The number of sentences to generate")
 	parser.add_argument("--size", default=25, type=int,
 						help="The length of each sentences to generate")
+	parser.add_argument("--seed", type=str,
+						help="A word to seed the generator with")
 
 	return parser
 
@@ -52,10 +54,14 @@ def punctuate(sentence):
 	# See if the sentence contains any interrogative words
 	return " ".join(sentence).capitalize() + choice([".", "?", "!"])
 
-def generate(words, endings, sentences=10, sentence_size=25):
+def generate(words, endings, sentences=10, sentence_size=25, seed=None):
 	output, sentence = [], []
 	w1, w2 = None, None
 	iterations = 0
+
+	if seed is not None and seed in words:
+		w1 = choice(endings[seed])
+		w2 = choice(endings[w1])
 
 	while sentences > 0:
 		end_sentence = False
@@ -91,7 +97,8 @@ def generate(words, endings, sentences=10, sentence_size=25):
 def main():
 	args = argparser().parse_args()
 	words, endings = srcparse(args.input.read())
-	args.output.write(generate(words, endings, args.length, args.size) + "\n")
+	text = generate(words, endings, args.length, args.size, args.seed)
+	args.output.write(text + "\n")
 
 if __name__ == "__main__":
 	main()
