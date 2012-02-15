@@ -143,8 +143,7 @@ def generate(words, endings, sentences=10, sentence_size=25,
 		if len(trends) > 0:
 			spaces = compile(r'\s+')
 			seed = choice(trends)
-			trending_topic = "#{}".format(
-				spaces.sub("", choice(trending_topics[seed]))).lower()
+			trending_topic = "#%s" % (spaces.sub("", choice(trending_topics[seed])).lower())
 			text_length += len(trending_topic) + 1
 			output.append(trending_topic)
 
