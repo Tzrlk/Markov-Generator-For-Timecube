@@ -141,8 +141,10 @@ def generate(words, endings, sentences=10, sentence_size=25,
 					except KeyError:
 						trending_topics[w] = [topic]
 		if len(trends) > 0:
+			spaces = compile(r'\s+')
 			seed = choice(trends)
-			trending_topic = choice(trending_topics[seed])
+			trending_topic = "#{}".format(
+				spaces.sub("", choice(trending_topics[seed]))).lower()
 			text_length += len(trending_topic) + 1
 			output.append(trending_topic)
 
