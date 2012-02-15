@@ -10,6 +10,7 @@ def follow(config, num):
 	followers = api.followers()
 	tries = 0
 	follower = select_follower(followers)
+	follow_followers(api, followers)
 	ffs = follower.followers()
 	print "Follower: %s" % follower.name
 	while num > 0:
@@ -24,11 +25,14 @@ def follow(config, num):
 			ffs = follower.followers()
 			tries = 0
 
+def follow_followers(api, followers):
+	for follower in followers:
+		do_follow(api, follower)
 
 def select_follower(followers):
 	return random.sample(followers, 1)[0]
 
-def do_follow(api, user, num):
+def do_follow(api, user, num=0):
 	if not user.following:
 		num = num - 1
 		api.create_friendship(user.screen_name)
