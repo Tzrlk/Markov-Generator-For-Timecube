@@ -33,8 +33,12 @@ def select_follower(followers):
 def do_follow(api, user, num=0):
 	if not user.following:
 		num = num - 1
-		api.create_friendship(user.screen_name)
-		print "Victim: %s" % user.name
+		try:
+			api.create_friendship(user.screen_name)
+			print "Victim: %s" % user.name
+		except:
+			# Something failed in the follow, accept that and move on
+			pass
 	return num
 
 def option_parser():
