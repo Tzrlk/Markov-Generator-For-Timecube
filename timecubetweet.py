@@ -30,7 +30,7 @@ def main():
 	parser = option_parser()
 	(options, args) = parser.parse_args()
 	config = get_config()
-		random.seed(datetime.datetime.now())
+	random.seed(datetime.datetime.now())
 	tweet(config)
 
 if __name__ == "__main__":
