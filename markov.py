@@ -37,8 +37,9 @@ def argparser():
 	return parser
 
 def srcparse(src):
+	biblesection = compile(r'\d*:\d')
 	punctuation = compile(r'[*.?!,":;-]')
-	word_list = split('\s+', punctuation.sub("", src).lower())
+	word_list = split('\s+', punctuation.sub("", biblesection.sub("", src)).lower())
 	word_endings = {}
 
 	if len(word_list) < 3:
