@@ -1,6 +1,7 @@
 #/bin/bash
-pushd `dirname "$0" `
-#./timecubetrends.py > trending.txt
+echo `dirname "$0" `
+cd `dirname "$0" `
+./timecubetrends.py > trending.txt
 for i in 1 2 3 4
 do
 	sleep 1
@@ -19,4 +20,3 @@ do
 done
 sleep 1
 ./timecubefollow.py -n 24
-popd
