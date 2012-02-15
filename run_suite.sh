@@ -1,9 +1,10 @@
 #/bin/bash
-pushd `dirname "$0" `
-#./timecubetrends.py > trending.txt
+echo `dirname "$0" `
+cd `dirname "$0" `
+./timecubetrends.py > trending.txt
 for i in 1 2 3 4
 do
-	sleep 30
+	sleep 1
 	selection=$RANDOM
 	echo $selection
 	if [ "$selection" -gt "30719" ]; then
@@ -17,6 +18,5 @@ do
 		./markov.py --length 1 --for_twitter --input src.txt | ./timecubetweet.py
 	fi
 done
-sleep 30
+sleep 1
 ./timecubefollow.py -n 24
-popd
