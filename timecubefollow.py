@@ -14,10 +14,8 @@ def follow(config, num):
 	ffs = follower.followers()
 	print "Follower: %s" % follower.name
 	while num > 0:
-		print num
 		tries = tries + 1
 		user = select_follower(ffs)
-		print "Victim: %s" % user.name
 		num = do_follow(api, user, num)
 		if tries == 10:
 			follower = select_follower(followers)
@@ -36,6 +34,7 @@ def do_follow(api, user, num=0):
 	if not user.following:
 		num = num - 1
 		api.create_friendship(user.screen_name)
+		print "Victim: %s" % user.name
 	return num
 
 def option_parser():
