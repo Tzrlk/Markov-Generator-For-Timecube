@@ -68,9 +68,11 @@ def srcparse(src):
 
 	return word_list, word_endings
 
-def punctuate(sentence):
-	# See if the sentence contains any interrogative words
-	return " ".join(sentence).capitalize() + choice([".", "?", "!"])
+def punctuate(sentence, capitalize=True):
+	text = " ".join(sentence)
+	if capitalize:
+		text = text.capitalize()
+	return text + choice([".", "?", "!"])
 
 def twitter_choice(key, endings, text_length):
 	"""Filter the word list by length to target a specific character count
@@ -123,23 +125,31 @@ def generate(words, endings, sentences=10, sentence_size=25,
 	"""
 	# Text length is 1 for the punctuation
 	output, sentence, iterations, text_length = [], [], 0, 1
-	seed_trending = False
-	has_trending = False
+	trends, trending_topics, trending_topic = [], {}, None
 	w1, w2 = None, None
 
 	if trending is not None:
-		for w in split('\s+', trending.read()):
-			if w in words:
-				seed = w
-				include_seed = True
-				seed_trending = True
-				break
+		rmhash = compile(r'#')
+		for topic in split('\n', trending.read()):
+			for w in split('\s+', rmhash.sub("", topic)):
+				if len(w) == 0:
+					continue
+				if w in words:
+					trends.append(w)
+					try:
+						trending_topics[w].append(topic)
+					except KeyError:
+						trending_topics[w] = [topic]
+		if len(trends) > 0:
+			seed = choice(trends)
+			trending_topic = choice(trending_topics[seed])
+			text_length += len(trending_topic) + 1
+			output.append(trending_topic)
 
 	if mention is not None:
 		mention = "@{0}".format(mention)
 		# Plus 1 for the space
 		text_length += len(mention) + 1
-		output.append(mention)
 
 	while sentences > 0:
 		end_sentence = False
@@ -158,11 +168,7 @@ def generate(words, endings, sentences=10, sentence_size=25,
 
 		# Plus 1 for the space
 		text_length += len(w1) + 1
-		if seed_trending and not has_trending and w1 == seed:
-			has_trending = True
-			sentence.append("#{}".format(w1))
-		else:
-			sentence.append(w1)
+		sentence.append(w1)
 
 		key = (w1, w2)
 
@@ -192,7 +198,7 @@ def generate(words, endings, sentences=10, sentence_size=25,
 		if end_sentence:
 			if w2 is not None:
 				sentence.append(w2)
-			output.append(punctuate(sentence))
+			output.append(punctuate(sentence, trending_topic is None))
 			reset_sentence = True
 			sentences -= 1
 
@@ -200,6 +206,13 @@ def generate(words, endings, sentences=10, sentence_size=25,
 			if not end_sentence:
 				has_trending = False
 			w1, w2, sentence, iterations, text_length = None, None, [], 0, 1
+			if mention is not None:
+				text_length += len(mention) + 1
+			if trending_topic is not None:
+				text_length += len(trending_topic) + 1
+
+	if mention is not None:
+		output.append(mention)
 
 	return " ".join(output)
 
