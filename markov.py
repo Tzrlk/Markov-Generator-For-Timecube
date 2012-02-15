@@ -4,6 +4,13 @@ from os.path import isfile, abspath
 from sys import exit, stdout
 from re import split, compile
 from random import choice
+from operator import itemgetter
+
+# When generating for twitter, this is the minimum number of characters a
+# sentence must reach before the algorithm begins selecting smaller words to
+# force a sentence ending
+TWITTER_ENDING_MIN=100
+TWITTER_ENDING_MAX=135
 
 def argparser():
 	desc = "Generates pseudo-random sentences using a body of work."
@@ -18,13 +25,21 @@ def argparser():
 						help="The length of each sentences to generate")
 	parser.add_argument("--seed", type=str,
 						help="A word to seed the generator with")
+	parser.add_argument("--include_seed", action="store_true", default=False,
+						help="Include seed word in generated sentences with")
+	parser.add_argument("--for_twitter", action="store_true", default=False,
+						help="Generates around 140 characters, but no more")
+	parser.add_argument("--trending", type=FileType('r'),
+						help="A file containing line-by-line trending topics")
+	parser.add_argument("--mention", type=str,
+						help="A @username to add to the generated text")
 
 	return parser
 
 def srcparse(src):
 	punctuation = compile(r'[*.?!,":;-]')
 	word_list = split('\s+', punctuation.sub("", src).lower())
-	word_endings = {} 
+	word_endings = {}
 
 	if len(word_list) < 3:
 		print "Source material must contain at least %s words" % group_size
@@ -35,6 +50,9 @@ def srcparse(src):
 		w2 = word_list[i + 1]
 		w3 = word_list[i + 2]
 		key = (w1, w2)
+
+		if 0 in [len(w1), len(w2), len(w3)]:
+			continue
 
 		# Generate doubles
 		if w1 in word_endings:
@@ -54,22 +72,97 @@ def punctuate(sentence):
 	# See if the sentence contains any interrogative words
 	return " ".join(sentence).capitalize() + choice([".", "?", "!"])
 
-def generate(words, endings, sentences=10, sentence_size=25, seed=None):
-	output, sentence = [], []
+def twitter_choice(key, endings, text_length):
+	"""Filter the word list by length to target a specific character count
+
+	Args:
+		key: The key to use for selecting the ending
+		endings: A list of selected word endings
+		text_length: The current length of the generated text
+
+	Returns:
+		The next word to add to the generated output
+	"""
+	words = endings[key]
+	choose_from = []
+
+	# -1 for the space
+	remainder = 140 - text_length - 1
+
+	if len(words) == 1 and (remainder - len(words[0]) - 1) <= 140:
+		return words[0]
+
+	for word in words:
+		# Subtract an additional 1 for the punctuation
+		if remainder - len(words[0]) - 1 - 1 <= 140:
+			choose_from.append(word)
+
+	if len(choose_from) == 0:
+		return False
+
+	return choice(choose_from)
+
+def generate(words, endings, sentences=10, sentence_size=25,
+				seed=None, include_seed=False,
+				for_twitter=False, mention=None, trending=None):
+	"""Generates test using the provided words and endings.
+
+	Args:
+		words: A list of words
+		endings: A dictionary of word endings created by parsesrc()
+		sentences: The number of sentences to generate
+		sentence_size: The approximate number of words per sentence
+		seed: A word to seed each sentence
+		include_seed: Include the seed word as the first word in the sentence
+		for_twitter: Generate output for twitter, limiting output at 140 chars
+		mention: Adds @mention to the output
+		trending: A file which contains a list words to flag for #trending
+
+	Return:
+		The generated output
+	"""
+	# Text length is 1 for the punctuation
+	output, sentence, iterations, text_length = [], [], 0, 1
+	seed_trending = False
+	has_trending = False
 	w1, w2 = None, None
-	iterations = 0
+
+	if trending is not None:
+		for w in split('\s+', trending.read()):
+			if w in words:
+				seed = w
+				include_seed = True
+				seed_trending = True
+				break
+
+	if mention is not None:
+		mention = "@{0}".format(mention)
+		# Plus 1 for the space
+		text_length += len(mention) + 1
+		output.append(mention)
 
 	while sentences > 0:
 		end_sentence = False
+		reset_sentence = False
+		skip_append = False
 
 		if w1 is None:
 			if seed is not None and seed in words:
-				w1 = choice(endings[seed])
+				if include_seed:
+					w1 = seed
+				else:
+					w1 = choice(endings[seed])
 			else:
 				w1 = choice(words)
 			w2 = choice(endings[w1])
 
-		sentence.append(w1)
+		# Plus 1 for the space
+		text_length += len(w1) + 1
+		if seed_trending and not has_trending and w1 == seed:
+			has_trending = True
+			sentence.append("#{}".format(w1))
+		else:
+			sentence.append(w1)
 
 		key = (w1, w2)
 
@@ -78,9 +171,21 @@ def generate(words, endings, sentences=10, sentence_size=25, seed=None):
 		if key in endings:
 			if iterations >= sentence_size and len(endings[key]) == 1:
 				end_sentence = True
-				w2 = choice(endings[w1])
+				key = w1
 			else:
-				w1, w2 = w2, choice(endings[key])
+				w1 = w2
+			if for_twitter and text_length >= TWITTER_ENDING_MIN:
+				# For twitter, attempt to pick compact words past 100 chars
+				w2 = twitter_choice(key, endings, text_length)
+				if w2 == False or text_length + 1 + len(w2) > 140:
+					# We must abort and retry; the sentence was too long
+					reset_sentence = True
+				else:
+					text_length += 1 + len(w2)
+					if text_length >= TWITTER_ENDING_MAX:
+						end_sentence = True
+			else:
+				w2 = choice(endings[key])
 		else:
 			end_sentence = True
 
@@ -88,15 +193,22 @@ def generate(words, endings, sentences=10, sentence_size=25, seed=None):
 			if w2 is not None:
 				sentence.append(w2)
 			output.append(punctuate(sentence))
-			w1, w2, sentence, iterations = None, None, [], 0
+			reset_sentence = True
 			sentences -= 1
+
+		if reset_sentence:
+			if not end_sentence:
+				has_trending = False
+			w1, w2, sentence, iterations, text_length = None, None, [], 0, 1
 
 	return " ".join(output)
 
 def main():
 	args = argparser().parse_args()
 	words, endings = srcparse(args.input.read())
-	text = generate(words, endings, args.length, args.size, args.seed)
+	text = generate(words, endings, args.length, args.size,
+					args.seed, args.include_seed,
+					args.for_twitter, args.mention, args.trending)
 	args.output.write(text + "\n")
 
 if __name__ == "__main__":
