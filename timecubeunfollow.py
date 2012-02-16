@@ -20,7 +20,7 @@ def unfollow(config, num):
 				ratio = float(user.followers_count) / float(user.friends_count)
 			if user.followers_count > 2000:
 				print "Popular: %s" % fid
-			elif ratio < 0.3:
+			elif ratio < 0.35:
 				num -= 1
 				api.destroy_friendship(fid)
 				print "Removing: %s" % fid
