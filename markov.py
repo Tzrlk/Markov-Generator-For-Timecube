@@ -47,6 +47,7 @@ def srcparse(src):
 	sentences = tokenizer.tokenize(src.strip().lower())
 	rm = compile(r'[*.?!,\'":;\(\)<>]')
 	sp = compile(r'[\-\+]')
+	biblesection = compile(r'\d*:\d')
 
 	starts, joins, ends = [], {}, []
 
