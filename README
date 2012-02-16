@@ -8,3 +8,8 @@ Getting Started:
 
 Help:
 ./markov.py --help
+
+Requires:
+* Python NLTK: http://www.nltk.org/
+* NLTK Data: ./download_nltk_data.sh
+
