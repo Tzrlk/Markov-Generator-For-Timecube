@@ -45,16 +45,16 @@ def argparser():
 def srcparse(src):
 	tokenizer = load("tokenizers/punkt/english.pickle")
 	sentences = tokenizer.tokenize(src.strip().lower())
+	bs = compile(r'\d*:\d')
 	rm = compile(r'[*.?!,\'":;\(\)<>]')
 	sp = compile(r'[\-\+]')
-	biblesection = compile(r'\d*:\d')
 
 	starts, joins, ends = [], {}, []
 
 	for sentence in sentences:
 		# Format the sentence
-		wlist = word_tokenize(sp.sub(" ", rm.sub("",
-			sentence.replace("\n", " "))))
+		wlist = word_tokenize(bs.sub(" ", sp.sub(" ", rm.sub("",
+			sentence.replace("\n", " ")))))
 
 		if len(wlist) < 3:
 			# Ignore sentences without triples in the corpus
@@ -127,7 +127,7 @@ def generate(starts, joins, ends,
 	if trending is not None:
 		rmformat = compile(r'#|\s+')
 		topic = choice(split('\n', trending.read()))
-		trending_topic = "#{}".format(rmformat.sub("", topic).lower())
+		trending_topic = "#{}".format(rmformat.sub("", topic))
 
 	while sentences > 0:
 		if hard_stop_iterations >= HARD_STOP:
