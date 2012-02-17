@@ -16,5 +16,5 @@ else
 	./markov.py --length 1 --for_twitter --input src.txt | ./timecubetweet.py
 fi
 sleep 1
-./timecubeunfollow.py -n 24
+./timecubeunfollow.py -n 12
 ./timecubefollow.py -n 24
