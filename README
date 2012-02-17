@@ -13,3 +13,7 @@ Requires:
 * Python NLTK: http://www.nltk.org/
 * NLTK Data: ./download_nltk_data.sh
 
+The rss_to_corpus.py script requires the python feedparser:
+http://code.google.com/p/feedparser/downloads/list
+
+tools/rss_to_corpus.py --output dirtyhooker.txt "http://www.dirtyhooker.org/blog/feed"
