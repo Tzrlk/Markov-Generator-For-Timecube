@@ -127,7 +127,7 @@ def generate(starts, joins, ends,
 	if trending is not None:
 		rmformat = compile(r'#|\s+')
 		topic = choice(split('\n', trending.read()))
-		trending_topic = "#{}".format(rmformat.sub("", topic))
+		trending_topic = "#%s" % (rmformat.sub("", topic))
 
 	while sentences > 0:
 		if hard_stop_iterations >= HARD_STOP:
@@ -164,7 +164,7 @@ def generate(starts, joins, ends,
 			sentence.reverse()
 			formatted_sentence = punctuate(sentence)
 			if mention is not None:
-				formatted_sentence += " @{}".format(mention)
+				formatted_sentence += " @%s" % (mention)
 			if for_twitter:
 				if len(formatted_sentence) > 140:
 					break
