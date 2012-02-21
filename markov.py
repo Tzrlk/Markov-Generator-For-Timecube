@@ -45,7 +45,7 @@ def argparser():
 def srcparse(src):
 	tokenizer = load("tokenizers/punkt/english.pickle")
 	sentences = tokenizer.tokenize(src.strip().lower())
-	bs = compile(r'\d*:\d')
+	bs = compile(r'\d*:\d*')
 	rm = compile(r'[*.?!,\'":;\(\)<>]')
 	sp = compile(r'[\-\+]')
 
