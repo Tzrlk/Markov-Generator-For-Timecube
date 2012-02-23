@@ -24,12 +24,13 @@ def tweet(config):
 
 def option_parser():
 	parser = OptionParser(usage="Posts generated tweets to Moar Time Cube twitter account.")
+	parser.add_option("-c", "--config", dest="config", default="moartimecube", help="config name")
 	return parser
 
 def main():
 	parser = option_parser()
 	(options, args) = parser.parse_args()
-	config = get_config()
+	config = get_config(options.config)
 	random.seed(datetime.datetime.now())
 	tweet(config)
 

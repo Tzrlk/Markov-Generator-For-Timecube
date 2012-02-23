@@ -12,13 +12,13 @@ def twitter_auth(config):
 	auth.set_access_token(config['access_token'], config['access_token_secret'])
 	return auth
 
-def get_config():
-	if os.path.exists('moartimecube.yaml'):
-		return yaml.load(file('moartimecube.yaml', 'r'))['moartimecube']
-	elif os.path.exists(os.path.expanduser('~/.moartimecube')):
-		return yaml.load(file(os.path.expanduser('~/.moartimecube'), 'r'))['moartimecube']
-	elif os.path.exists('/etc/moartimecube.yaml'):
-		return yaml.load(file('/etc/moartimecube.yaml', 'r'))['moartimecube']
+def get_config(name):
+	if os.path.exists('%s.yaml' % name):
+		return yaml.load(file('%s.yaml' % name, 'r'))['twitter']
+	elif os.path.exists(os.path.expanduser('~/.%s' % name)):
+		return yaml.load(file(os.path.expanduser('~/.%s' % name), 'r'))['twitter']
+	elif os.path.exists('/etc/%s.yaml' % name):
+		return yaml.load(file('/etc/%s.yaml' % name, 'r'))['twitter']
 	else:
 		raise Exception('No config file')
 

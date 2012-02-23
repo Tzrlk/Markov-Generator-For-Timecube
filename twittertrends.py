@@ -20,12 +20,13 @@ def trends(config, num):
 def option_parser():
 	parser = OptionParser(usage="Follows random followers of timecube followers on the Moar Time Cube twitter account.")
 	parser.add_option("-n", "--num", dest="num", default="10", help="number of random people to follow")
+	parser.add_option("-c", "--config", dest="config", default="moartimecube", help="config name")
 	return parser
 
 def main():
 	parser = option_parser()
 	(options, args) = parser.parse_args()
-	config = get_config()
+	config = get_config(options.config)
 	num = int(options.num)
 	random.seed(datetime.datetime.now())
 	trends(config, num)
