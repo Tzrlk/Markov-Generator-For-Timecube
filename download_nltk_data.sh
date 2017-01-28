@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo python -m nltk.downloader -d /usr/share/nltk_data all
+sudo python -m nltk.downloader -d /var/nltk_data all
